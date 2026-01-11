@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html lang="th">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Barcode → Area</title>
+
+<body style="font-family:sans-serif;text-align:center">
+<h3>สแกนบาร์โค้ด</h3>
+
+<video id="v" autoplay playsinline width="100%"></video>
+<div id="out"></div>
+<button onclick="scan()">สแกนอีกครั้ง</button>
+
+<script>
+let v = document.getElementById("v"), out = document.getElementById("out");
+
+async function scan(){
+  out.innerHTML="";
+  let s = await navigator.mediaDevices.getUserMedia({video:{facingMode:"environment"}});
+  v.srcObject = s;
+  let d = new BarcodeDetector();
+  let i = setInterval(async()=>{
+    let b = await d.detect(v);
+    if(b.length){
+      clearInterval(i); s.getTracks()[0].stop();
+      calc(b[0].rawValue);
+    }
+  },500);
+}
+
+function calc(x){
+  let [A,B,C]=x.split("-").map(Number),
+      D=2*A+B,
+      R=D/2,
+      big=3.14*R*R,
+      small=3.14*(B/2)**2,
+      runC=big-small,
+      runR=A*C*2,
+      total=runC+runR;
+
+  out.innerHTML=`
+  A=${A} B=${B} C=${C}<hr>
+  1) เส้นผ่านศูนย์กลางวงกลมใหญ่ = ${D} ม.<br>
+  2) รัศมีวงกลมใหญ่ = ${R} ม.<br>
+  3) พื้นที่วงกลมใหญ่ = ${big.toFixed(2)} ตร.ม.<br>
+  4) พื้นที่วงกลมเล็ก = ${small.toFixed(2)} ตร.ม.<br>
+  5) ลู่วิ่งวงกลม = ${runC.toFixed(2)} ตร.ม.<br>
+  6) ลู่วิ่งสี่เหลี่ยม = ${runR.toFixed(2)} ตร.ม.<br>
+  7) พื้นที่ลู่วิ่ง = ${total.toFixed(2)} ตร.ม.
+  `;
+}
+
+scan();
+</script>
+</body>
+</html>
