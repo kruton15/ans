@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Circle Scan Calculator</title>
+
+<style>
+body{
+  margin:0;
+  font-family:system-ui,sans-serif;
+  background:#f2f5fb;
+  text-align:center;
+}
+h3{margin:12px;color:#333}
+
+#scanner{
+  width:220px;height:220px;
+  margin:10px auto;
+  border-radius:18px;
+  overflow:hidden;
+  border:4px solid #4caf9a;
+  box-shadow:0 8px 18px rgba(0,0,0,.15);
+}
+video{width:100%;height:100%;object-fit:cover}
+
+#status{
+  font-size:14px;
+  color:#4caf9a;
+  margin:6px 0;
+}
+
+#out{
+  max-width:360px;
+  margin:12px auto;
+  background:#fff;
+  border-radius:16px;
+  padding:14px;
+  box-shadow:0 6px 16px rgba(0,0,0,.1);
+  text-align:left;
+  font-size:15px;
+  line-height:1.65;
+}
+
+.badge{
+  display:inline-block;
+  background:#4caf9a;
+  color:#fff;
+  padding:4px 10px;
+  border-radius:999px;
+  font-size:13px;
+  margin-bottom:8px;
+}
+</style>
+</head>
+
+<body>
+<h3>📷 สแกนบาร์โค้ด</h3>
+
+<div id="scanner">
+  <video id="v" autoplay playsinline></video>
+</div>
+
+<div id="status">🔍 กำลังสแกน…</div>
+<div id="out"></div>
+
+<script>
+const v=document.getElementById("v"),
+      out=document.getElementById("out"),
+      status=document.getElementById("status");
+
+let last="";
+
+if(!("BarcodeDetector" in window)){
+  status.innerHTML="❌ อุปกรณ์นี้ไม่รองรับการสแกนบาร์โค้ด";
+  throw "";
+}
+
+(async()=>{
+  let stream=await navigator.mediaDevices.getUserMedia({
+    video:{facingMode:"environment"}
+  });
+  v.srcObject=stream;
+
+  let detector=new BarcodeDetector();
+  setInterval(async()=>{
+    let b=await detector.detect(v);
+    if(b.length){
+      let val=b[0].rawValue;
+      if(val!==last){
+        last=val;
+        calc(val);
+      }
+    }
+  },700);
+})();
+
+function calc(x){
+  if(!/^\d+$/.test(x)){
+    status.innerHTML="❌ บาร์โค้ดต้องเป็นตัวเลขเท่านั้น";
+    out.innerHTML="";
+    return;
+  }
+
+  let D=Number(x),
+      pi=Math.PI,
+      r=D/2,
+      cSmall=pi*D,
+      cHalfBig=pi*D,
+      cShade=pi*D*2,
+      aSmall=pi*r*r,
+      aHalfBig=pi*D*D/2,
+      aShade=aHalfBig-aSmall;
+
+  status.innerHTML="✅ สแกนสำเร็จ";
+
+  out.innerHTML=`
+  <div class="badge">D = ${D}</div><br>
+  1) ความยาวรอบวงกลมเล็ก = ${cSmall.toFixed(2)} ซม.<br>
+  2) ความยาวรอบครึ่งวงกลมใหญ่ = ${cHalfBig.toFixed(2)} ซม.<br>
+  3) ความยาวรอบรูปส่วนที่แรเงา = ${cShade.toFixed(2)} ซม.<br>
+  4) พื้นที่วงกลมเล็ก = ${aSmall.toFixed(2)} ตร.ซม.<br>
+  5) พื้นที่ครึ่งวงกลมใหญ่ = ${aHalfBig.toFixed(2)} ตร.ซม.<br>
+  6) พื้นที่ส่วนที่แรเงา = ${aShade.toFixed(2)} ตร.ซม.
+  `;
+}
+</script>
+</body>
+</html>
