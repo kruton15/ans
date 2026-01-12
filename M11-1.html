@@ -1,32 +1,79 @@
 <!DOCTYPE html>
 <html lang="th">
+<head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Barcode → Area</title>
+<title>Scan & Calculate</title>
 
-<body style="font-family:sans-serif;text-align:center">
-<h3>สแกนบาร์โค้ด</h3>
+<style>
+body{
+  margin:0;
+  font-family: "Segoe UI",sans-serif;
+  background:#f5f7fb;
+  text-align:center;
+}
+h3{margin:12px;color:#444}
 
-<video id="v" autoplay playsinline width="100%"></video>
-<div id="out"></div>
-<button onclick="scan()">สแกนอีกครั้ง</button>
+#scanner{
+  width:220px;
+  height:220px;
+  margin:10px auto;
+  border-radius:20px;
+  overflow:hidden;
+  border:4px solid #6c8cff;
+  box-shadow:0 8px 20px rgba(0,0,0,.15);
+}
+video{
+  width:100%;
+  height:100%;
+  object-fit:cover;
+}
+
+#out{
+  max-width:360px;
+  margin:12px auto;
+  background:#fff;
+  border-radius:16px;
+  padding:14px;
+  box-shadow:0 6px 16px rgba(0,0,0,.1);
+  text-align:left;
+  font-size:15px;
+  line-height:1.6;
+}
+
+.badge{
+  display:inline-block;
+  background:#6c8cff;
+  color:#fff;
+  padding:4px 10px;
+  border-radius:999px;
+  font-size:13px;
+  margin-bottom:8px;
+}
+</style>
+</head>
+
+<body>
+<h3>📷 สแกนบาร์โค้ด</h3>
+
+<div id="scanner">
+  <video id="v" autoplay playsinline></video>
+</div>
+
+<div id="out">กำลังรอสแกน…</div>
 
 <script>
-let v = document.getElementById("v"), out = document.getElementById("out");
+let v=document.getElementById("v"), out=document.getElementById("out");
 
-async function scan(){
-  out.innerHTML="";
-  let s = await navigator.mediaDevices.getUserMedia({video:{facingMode:"environment"}});
-  v.srcObject = s;
-  let d = new BarcodeDetector();
-  let i = setInterval(async()=>{
-    let b = await d.detect(v);
-    if(b.length){
-      clearInterval(i); s.getTracks()[0].stop();
-      calc(b[0].rawValue);
-    }
-  },500);
-}
+(async()=>{
+  let s=await navigator.mediaDevices.getUserMedia({video:{facingMode:"environment"}});
+  v.srcObject=s;
+  let d=new BarcodeDetector();
+  setInterval(async()=>{
+    let b=await d.detect(v);
+    if(b.length) calc(b[0].rawValue);
+  },600);
+})();
 
 function calc(x){
   let [A,B,C]=x.split("-").map(Number),
@@ -39,7 +86,7 @@ function calc(x){
       total=runC+runR;
 
   out.innerHTML=`
-  A=${A} B=${B} C=${C}<hr>
+  <div class="badge">A=${A} B=${B} C=${C}</div><br>
   1) เส้นผ่านศูนย์กลางวงกลมใหญ่ = ${D} ม.<br>
   2) รัศมีวงกลมใหญ่ = ${R} ม.<br>
   3) พื้นที่วงกลมใหญ่ = ${big.toFixed(2)} ตร.ม.<br>
@@ -49,8 +96,6 @@ function calc(x){
   7) พื้นที่ลู่วิ่ง = ${total.toFixed(2)} ตร.ม.
   `;
 }
-
-scan();
 </script>
 </body>
 </html>
