@@ -3,30 +3,31 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Scan & Calculate</title>
+<title>Running Track Calculator</title>
 
 <style>
 body{
   margin:0;
-  font-family: "Segoe UI",sans-serif;
-  background:#f5f7fb;
+  font-family:system-ui,sans-serif;
+  background:#f2f5fb;
   text-align:center;
 }
-h3{margin:12px;color:#444}
+h3{margin:12px;color:#333}
 
 #scanner{
-  width:220px;
-  height:220px;
+  width:220px;height:220px;
   margin:10px auto;
-  border-radius:20px;
+  border-radius:18px;
   overflow:hidden;
-  border:4px solid #6c8cff;
-  box-shadow:0 8px 20px rgba(0,0,0,.15);
+  border:4px solid #5b7cfa;
+  box-shadow:0 8px 18px rgba(0,0,0,.15);
 }
-video{
-  width:100%;
-  height:100%;
-  object-fit:cover;
+video{width:100%;height:100%;object-fit:cover}
+
+#status{
+  font-size:14px;
+  color:#5b7cfa;
+  margin:6px 0;
 }
 
 #out{
@@ -38,18 +39,19 @@ video{
   box-shadow:0 6px 16px rgba(0,0,0,.1);
   text-align:left;
   font-size:15px;
-  line-height:1.6;
+  line-height:1.65;
 }
 
 .badge{
   display:inline-block;
-  background:#6c8cff;
+  background:#5b7cfa;
   color:#fff;
   padding:4px 10px;
   border-radius:999px;
   font-size:13px;
   margin-bottom:8px;
 }
+.error{color:#d33}
 </style>
 </head>
 
@@ -60,30 +62,57 @@ video{
   <video id="v" autoplay playsinline></video>
 </div>
 
-<div id="out">กำลังรอสแกน…</div>
+<div id="status">🔍 กำลังสแกน…</div>
+<div id="out"></div>
 
 <script>
-let v=document.getElementById("v"), out=document.getElementById("out");
+const v=document.getElementById("v"),
+      out=document.getElementById("out"),
+      status=document.getElementById("status");
+
+let last="";
+
+if(!("BarcodeDetector" in window)){
+  status.innerHTML="❌ อุปกรณ์นี้ไม่รองรับการสแกน";
+  throw "";
+}
 
 (async()=>{
-  let s=await navigator.mediaDevices.getUserMedia({video:{facingMode:"environment"}});
-  v.srcObject=s;
-  let d=new BarcodeDetector();
+  let stream=await navigator.mediaDevices.getUserMedia({
+    video:{facingMode:"environment"}
+  });
+  v.srcObject=stream;
+
+  let detector=new BarcodeDetector();
   setInterval(async()=>{
-    let b=await d.detect(v);
-    if(b.length) calc(b[0].rawValue);
-  },600);
+    let b=await detector.detect(v);
+    if(b.length){
+      let val=b[0].rawValue;
+      if(val!==last){
+        last=val;
+        calc(val);
+      }
+    }
+  },700);
 })();
 
 function calc(x){
+  if(!/^\d+-\d+-\d+$/.test(x)){
+    status.innerHTML="❌ รูปแบบข้อมูลไม่ถูกต้อง";
+    out.innerHTML="";
+    return;
+  }
+
   let [A,B,C]=x.split("-").map(Number),
       D=2*A+B,
       R=D/2,
-      big=3.14*R*R,
-      small=3.14*(B/2)**2,
+      big=Math.PI*R*R,
+      small=Math.PI*(B/2)**2,
       runC=big-small,
       runR=A*C*2,
       total=runC+runR;
+
+  status.innerHTML="✅ สแกนสำเร็จ";
 
   out.innerHTML=`
   <div class="badge">A=${A} B=${B} C=${C}</div><br>
