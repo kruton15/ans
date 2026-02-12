@@ -117,7 +117,9 @@ function f(x){
 }
 
 function calc(x){
-  // ต้องเป็นตัวเลขล้วนอย่างน้อย 21 หลัก
+  // รองรับ Code 39 (IDAutomation)
+  x = x.replace(/\*/g, "");
+
   if(!/^\d{21,}$/.test(x)){
     status.innerHTML="❌ รูปแบบข้อมูลไม่ถูกต้อง";
     out.innerHTML="";
