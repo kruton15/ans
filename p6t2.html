@@ -1,0 +1,170 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>เฉลยข้อสอบปลายภาค2</title>
+
+<style>
+body{
+  margin:0;
+  font-family:system-ui,sans-serif;
+  background:#f2f5fb;
+  text-align:center;
+}
+h3{margin:12px;color:#333}
+
+#scanner{
+  width:220px;height:220px;
+  margin:10px auto;
+  border-radius:18px;
+  overflow:hidden;
+  border:4px solid #5b7cfa;
+  box-shadow:0 8px 18px rgba(0,0,0,.15);
+}
+video{width:100%;height:100%;object-fit:cover}
+
+#status{
+  font-size:14px;
+  color:#5b7cfa;
+  margin:6px 0;
+}
+
+#out{
+  max-width:360px;
+  margin:12px auto;
+  background:#fff;
+  border-radius:16px;
+  padding:14px;
+  box-shadow:0 6px 16px rgba(0,0,0,.1);
+  text-align:left;
+  font-size:15px;
+  line-height:1.65;
+}
+
+.badge{
+  display:inline-block;
+  background:#5b7cfa;
+  color:#fff;
+  padding:4px 10px;
+  border-radius:999px;
+  font-size:13px;
+  margin-bottom:8px;
+}
+.error{color:#d33}
+</style>
+</head>
+
+<body>
+<h3>📷 สแกนบาร์โค้ด</h3>
+
+<div id="scanner">
+  <video id="v" autoplay playsinline></video>
+</div>
+
+<div id="status">🔍 กำลังสแกน…</div>
+<div id="out"></div>
+
+<script>
+const v=document.getElementById("v"),
+      out=document.getElementById("out"),
+      status=document.getElementById("status");
+
+let last="";
+
+if(!("BarcodeDetector" in window)){
+  status.innerHTML="❌ อุปกรณ์นี้ไม่รองรับการสแกน";
+  throw "";
+}
+
+(async()=>{
+  let stream=await navigator.mediaDevices.getUserMedia({
+    video:{facingMode:"environment"}
+  });
+  v.srcObject=stream;
+
+  let detector=new BarcodeDetector();
+  setInterval(async()=>{
+    let b=await detector.detect(v);
+    if(b.length){
+      let val=b[0].rawValue;
+      if(val!==last){
+        last=val;
+        calc(val);
+      }
+    }
+  },700);
+})();
+
+function f(x){
+  let n = Number(x);
+
+  // ปัดเป็นทศนิยมไม่เกิน 2 ตำแหน่ง
+  let s = n.toFixed(2);
+
+  // ถ้า .00 ให้ตัดทิ้ง
+  if(s.endsWith(".00")){
+    s = s.slice(0,-3);
+  }else{
+    // ตัด 0 ท้ายสุด เช่น 12.50 → 12.5
+    s = s.replace(/0+$/,'').replace(/\.$/,'');
+  }
+
+  // ใส่เครื่องหมาย , หลักพัน
+  let parts = s.split(".");
+  parts[0] = parts[0].replace(/\B(?=(\d{3})+(?!\d))/g, ",");
+  return parts.join(".");
+}
+
+function calc(x){
+  // ต้องเป็นตัวเลขล้วนอย่างน้อย 20 หลัก
+  if(!/^\d{20,}$/.test(x)){
+    status.innerHTML="❌ รูปแบบข้อมูลไม่ถูกต้อง";
+    out.innerHTML="";
+    return;
+  }
+
+  status.innerHTML="✅ สแกนสำเร็จ";
+
+  // แยกค่า
+  let n1=parseInt(x.slice(0,3));
+  let n2=parseInt(x.slice(3,5));
+  let n3=parseInt(x.slice(5,7));
+  let n4=parseInt(x.slice(7,9));
+  let n5=parseInt(x.slice(9,11));
+  let n6=parseInt(x.slice(11,13));
+  let n7=parseInt(x.slice(13,15));
+  let n8=parseInt(x.slice(15,17));
+  let n9=parseInt(x.slice(17));
+
+  // คำนวณ
+  let a1=(180-n1)/2;
+  let a2=n2-(15.3*2);
+  let a3=(n3+0.7)*4;
+  let a4=180-103-n4;
+  let a5=(n5*18)+(18*5);
+  let a61=2*22/7*n6*3/4;
+  let a62=22/7*n6*n6*3/4;
+  let a7=14*22*n7*2/3;
+  let a8=3+(n8-1)*4;
+  let a9=n9*4;
+  let a10=n9*2/3;
+
+  out.innerHTML=`
+  <div class="badge">ผลการเฉลย</div><br>
+  ข้อ 1) ${f(a1)}°<br>
+  ข้อ 2) ${f(a2)} ซม.<br>
+  ข้อ 3) ${f(a3)} ม.<br>
+  ข้อ 4) ${f(a4)}°<br>
+  ข้อ 5) ${f(a5)} ตร.ซม.<br>
+  ข้อ 6.1) ${f(a61)} ซม.<br>
+  ข้อ 6.2) ${f(a62)} ตร.ซม.<br>
+  ข้อ 7) ${f(a7)} ลบ.ซม.<br>
+  ข้อ 8) ${f(a8)}<br>
+  ข้อ 9) ${f(a9)} บาท<br>
+  ข้อ 10) ${f(a10)} บาท
+  `;
+}
+</script>
+</body>
+</html>
