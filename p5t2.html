@@ -120,7 +120,7 @@ function calc(x){
   // รองรับ Code 39 (IDAutomation)
   x = x.replace(/\*/g, "");
 
-  if(!/^\d{17,}$/.test(x)){
+  if(!/^\d{18,}$/.test(x)){
     status.innerHTML="❌ รูปแบบข้อมูลไม่ถูกต้อง";
     out.innerHTML="";
     return;
@@ -171,4 +171,5 @@ function calc(x){
 </script>
 </body>
 </html>
+
 
