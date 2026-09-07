@@ -3,176 +3,63 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-
 <title>เฉลยคณิต ป.5 ปลายภาค 1</title>
 
 <style>
-*{
-  box-sizing:border-box;
-}
-
+*{box-sizing:border-box}
 body{
-  margin:0;
-  font-family:system-ui,-apple-system,BlinkMacSystemFont,
-               "Segoe UI",sans-serif;
-  background:#f2f5fb;
-  text-align:center;
-  color:#333;
+  margin:0;text-align:center;color:#333;
+  font-family:system-ui,sans-serif;background:#f2f5fb
 }
-
-h3{
-  margin:14px 0 10px;
-  font-size:20px;
-}
-
-/* กล่องกล้อง */
+h3{margin:14px 0 10px;font-size:20px}
 #scanner{
-  width:260px;
-  height:210px;
-  margin:12px auto;
-  border-radius:18px;
-  overflow:hidden;
-  border:4px solid #5b7cfa;
-  background:#111;
-  box-shadow:0 8px 18px rgba(0,0,0,.15);
-  position:relative;
+  width:260px;height:210px;margin:12px auto;
+  border:4px solid #5b7cfa;border-radius:18px;
+  overflow:hidden;background:#111;position:relative;
+  box-shadow:0 8px 18px #0002
 }
-
-video{
-  width:100%;
-  height:100%;
-  object-fit:cover;
+video{width:100%;height:100%;object-fit:cover}
+#scanner:after{
+  content:"";position:absolute;inset:25% 15%;
+  border:2px solid #fffC;border-radius:10px
 }
-
-/* กรอบเล็ง */
-#scanner::after{
-  content:"";
-  position:absolute;
-  left:15%;
-  right:15%;
-  top:25%;
-  bottom:25%;
-  border:2px solid rgba(255,255,255,.8);
-  border-radius:10px;
-  pointer-events:none;
-}
-
-/* สถานะ */
 #status{
-  font-size:14px;
-  color:#5b7cfa;
-  margin:8px 0;
-  min-height:22px;
-  font-weight:600;
+  margin:8px 0;min-height:22px;
+  color:#5b7cfa;font-size:14px;font-weight:600
 }
-
-/* ผลลัพธ์ */
+.error{color:#d33!important}
 #out{
-  max-width:380px;
-  margin:14px auto;
-  background:#fff;
-  border-radius:16px;
-  padding:16px;
-  box-shadow:0 6px 16px rgba(0,0,0,.10);
-  text-align:left;
-  font-size:16px;
-  line-height:1.9;
+  max-width:390px;margin:14px auto;padding:16px;
+  background:#fff;border-radius:16px;
+  box-shadow:0 6px 16px #0002;
+  text-align:left;font-size:16px;line-height:1.9
 }
-
-/* หัวข้อเฉลย */
-.badge{
-  display:inline-block;
-  background:#5b7cfa;
-  color:#fff;
-  padding:5px 12px;
-  border-radius:999px;
-  font-size:14px;
-  margin-bottom:8px;
-}
-
-/* ปุ่ม */
 button{
-  border:0;
-  background:#5b7cfa;
-  color:white;
-  padding:10px 20px;
-  border-radius:999px;
-  font-size:15px;
-  font-weight:600;
-  cursor:pointer;
-  box-shadow:0 4px 10px rgba(91,124,250,.25);
+  border:0;padding:10px 20px;border-radius:999px;
+  background:#5b7cfa;color:white;font-size:15px;
+  font-weight:600;cursor:pointer
 }
-
-button:hover{
-  opacity:.9;
+.hidden{display:none}
+.badge{
+  display:inline-block;margin-bottom:8px;padding:5px 12px;
+  border-radius:999px;background:#5b7cfa;color:#fff;font-size:14px
 }
-
-button:active{
-  transform:scale(.98);
-}
-
-/* ซ่อนปุ่มเมื่อไม่จำเป็น */
-.hidden{
-  display:none;
-}
-
-/* error */
-.error{
-  color:#d33 !important;
-}
-
-/* เศษส่วน */
+.answer-line{margin:3px 0}
+.answer-label{font-weight:600}
+hr{border:0;border-top:1px solid #ddd;margin:10px 0}
 .fraction{
-  display:inline-flex;
-  flex-direction:column;
-  vertical-align:middle;
-  text-align:center;
-  line-height:1.05;
-  margin:0 3px;
+  display:inline-flex;flex-direction:column;
+  vertical-align:middle;text-align:center;
+  line-height:1.05;margin:0 3px
 }
-
-.fraction .top{
-  border-bottom:1px solid #333;
-  padding:0 4px 2px;
-}
-
-.fraction .bottom{
-  padding:2px 4px 0;
-}
-
-/* จำนวนคละ */
-.mixed{
-  display:inline-flex;
-  align-items:center;
-  gap:3px;
-}
-
-.whole{
-  display:inline-block;
-}
-
-.answer-line{
-  margin:3px 0;
-}
-
-.answer-label{
-  font-weight:600;
-}
-
-.unit{
-  margin-left:3px;
-}
+.top{border-bottom:1px solid #333;padding:0 4px 2px}
+.bottom{padding:2px 4px 0}
+.mixed{display:inline-flex;align-items:center;gap:3px}
+.volume-answer{font-weight:600}
 
 @media(max-width:400px){
-  #scanner{
-    width:230px;
-    height:190px;
-  }
-
-  #out{
-    margin-left:12px;
-    margin-right:12px;
-  }
+  #scanner{width:230px;height:190px}
+  #out{margin-left:12px;margin-right:12px}
 }
 </style>
 </head>
@@ -186,732 +73,228 @@ button:active{
 </div>
 
 <div id="status">🔍 กำลังเตรียมกล้อง…</div>
-
-<button id="restartBtn" class="hidden">
-  🔄 สแกนใหม่
-</button>
-
+<button id="restartBtn" class="hidden">🔄 สแกนใหม่</button>
 <div id="out"></div>
 
-
 <script>
+const $=id=>document.getElementById(id);
+const v=$("v"),out=$("out"),status=$("status"),restart=$("restartBtn");
 
-/* =========================================================
-   ตัวแปรหลัก
-========================================================= */
+let stream,detector,scanning=false,lastValue="",timer;
 
-const v = document.getElementById("v");
-const out = document.getElementById("out");
-const status = document.getElementById("status");
-const restartBtn = document.getElementById("restartBtn");
+/* ---------- เศษส่วน ---------- */
+const gcd=(a,b)=>{
+  while(b)[a,b]=[b,a%b];
+  return Math.abs(a)||1;
+};
 
-let stream = null;
-let detector = null;
-let scanning = false;
-let lastValue = "";
-let scanTimer = null;
-
-
-/* =========================================================
-   ฟังก์ชันเศษส่วน
-   ใช้ numerator / denominator เพื่อความแม่นยำ
-========================================================= */
-
-/* ห.ร.ม. */
-function gcd(a, b){
-  a = Math.abs(a);
-  b = Math.abs(b);
-
-  while(b !== 0){
-    let temp = a % b;
-    a = b;
-    b = temp;
-  }
-
-  return a || 1;
+function frac(n,d=1){
+  if(!d)throw Error("หารด้วยศูนย์");
+  if(d<0)[n,d]=[-n,-d];
+  let g=gcd(n,d);
+  return {n:n/g,d:d/g};
 }
 
+const F=n=>frac(n);
+const add=(a,b)=>frac(a.n*b.d+b.n*a.d,a.d*b.d);
+const sub=(a,b)=>frac(a.n*b.d-b.n*a.d,a.d*b.d);
+const mul=(a,b)=>frac(a.n*b.n,a.d*b.d);
+const div=(a,b)=>{
+  if(!b.n)throw Error("หารด้วยศูนย์");
+  return frac(a.n*b.d,a.d*b.n);
+};
+const square=a=>mul(a,a);
 
-/* สร้างเศษส่วนและลดรูป */
-function frac(numerator, denominator = 1){
-
-  if(denominator === 0){
-    throw new Error("ไม่สามารถหารด้วยศูนย์ได้");
-  }
-
-  if(denominator < 0){
-    numerator = -numerator;
-    denominator = -denominator;
-  }
-
-  const g = gcd(numerator, denominator);
-
-  return {
-    n: numerator / g,
-    d: denominator / g
-  };
-}
-
-
-/* บวกเศษส่วน */
-function add(a,b){
-  return frac(
-    a.n * b.d + b.n * a.d,
-    a.d * b.d
-  );
-}
-
-
-/* ลบเศษส่วน */
-function sub(a,b){
-  return frac(
-    a.n * b.d - b.n * a.d,
-    a.d * b.d
-  );
-}
-
-
-/* คูณเศษส่วน */
-function mul(a,b){
-  return frac(
-    a.n * b.n,
-    a.d * b.d
-  );
-}
-
-
-/* หารเศษส่วน */
-function div(a,b){
-
-  if(b.n === 0){
-    throw new Error("ไม่สามารถหารด้วยศูนย์ได้");
-  }
-
-  return frac(
-    a.n * b.d,
-    a.d * b.n
-  );
-}
-
-
-/* ยกกำลัง 2 */
-function square(a){
-  return frac(
-    a.n * a.n,
-    a.d * a.d
-  );
-}
-
-
-/* สร้างเศษส่วนจากจำนวนเต็ม */
-function F(n){
-  return frac(n,1);
-}
-
-
-/* =========================================================
-   แสดงผลเศษส่วน
-   เศษส่วนแท้ → 3/4
-   เศษส่วนเกิน → 1 2/3
-   จำนวนเต็ม → 4
-========================================================= */
-
-function fractionHTML(f){
-
-  const n = f.n;
-  const d = f.d;
-
-  if(d === 1){
-    return Number(n).toLocaleString("en-US");
-  }
-
-  if(n === 0){
-    return "0";
-  }
-
-  const sign = n < 0 ? "-" : "";
-  const absN = Math.abs(n);
-
-  /* จำนวนคละ */
-  if(absN > d){
-
-    const whole = Math.floor(absN / d);
-    const remainder = absN % d;
-
-    if(remainder === 0){
-      return sign + whole.toLocaleString("en-US");
-    }
-
-    return `
-      <span class="mixed">
-        <span class="whole">${sign}${whole}</span>
-        <span class="fraction">
-          <span class="top">${remainder}</span>
-          <span class="bottom">${d}</span>
-        </span>
-      </span>
-    `;
-  }
-
-  /* เศษส่วนแท้ */
-  return `
-    <span class="fraction">
-      <span class="top">${sign}${absN}</span>
-      <span class="bottom">${d}</span>
-    </span>
-  `;
-}
-
-
-/* =========================================================
-   ฟังก์ชัน f()
-   สำหรับข้อ 1–8 ใช้กับ Fraction
-========================================================= */
-
+/* ---------- แสดงผล ---------- */
 function f(x){
-
-  /* ถ้าเป็นเศษส่วน */
-  if(
-    typeof x === "object" &&
-    x !== null &&
-    "n" in x &&
-    "d" in x
-  ){
-    return fractionHTML(x);
-  }
-
-  /* ถ้าเป็นตัวเลข */
-  if(!Number.isFinite(x)){
-    return "ไม่สามารถคำนวณได้";
-  }
-
-  /* จำนวนเต็ม */
-  if(Number.isInteger(x)){
-    return x.toLocaleString("en-US");
-  }
-
-  /* สำหรับข้อ 9–10
-     แสดงทศนิยมไม่เกิน 2 ตำแหน่ง */
-  let s = x.toFixed(2);
-
-  s = s
-    .replace(/0+$/,"")
-    .replace(/\.$/,"");
-
-  let parts = s.split(".");
-
-  parts[0] = parts[0].replace(
-    /\B(?=(\d{3})+(?!\d))/g,
-    ","
-  );
-
-  return parts.join(".");
+  if(x?.n!==undefined)return fractionHTML(x);
+  if(!Number.isFinite(x))return "ไม่สามารถคำนวณได้";
+  if(Number.isInteger(x))return x.toLocaleString("en-US");
+  return x.toFixed(2).replace(/0+$/,"").replace(/\.$/,"")
+    .replace(/\B(?=(\d{3})+(?!\d))/g,",");
 }
 
+function fractionHTML({n,d}){
+  if(d===1||n===0)return Number(n).toLocaleString("en-US");
 
-/* =========================================================
-   เปิดกล้อง
-========================================================= */
+  let sign=n<0?"-":"",a=Math.abs(n);
+  if(a>d){
+    let w=Math.floor(a/d),r=a%d;
+    if(!r)return sign+w;
+    return `<span class="mixed">
+      <span>${sign}${w}</span>
+      <span class="fraction">
+        <span class="top">${r}</span>
+        <span class="bottom">${d}</span>
+      </span>
+    </span>`;
+  }
 
+  return `<span class="fraction">
+    <span class="top">${sign}${a}</span>
+    <span class="bottom">${d}</span>
+  </span>`;
+}
+
+function volume(cm3){
+  cm3=Math.round(cm3);
+  let l=Math.floor(cm3/1000),ml=cm3%1000;
+  return `<span class="volume-answer">${
+    l?l.toLocaleString("en-US")+" ลิตร ":""
+  }${
+    ml?ml.toLocaleString("en-US")+" มิลลิลิตร":
+    (!l?"0 มิลลิลิตร":"")
+  }</span>`;
+}
+
+/* ---------- กล้อง ---------- */
 async function startCamera(){
-
   try{
-
-    if(!navigator.mediaDevices ||
-       !navigator.mediaDevices.getUserMedia){
-
-      throw new Error("อุปกรณ์ไม่รองรับการใช้กล้อง");
-    }
+    if(!navigator.mediaDevices?.getUserMedia)
+      throw Error("ไม่รองรับกล้อง");
 
     if(!("BarcodeDetector" in window)){
-
-      status.innerHTML =
-        "❌ Browser นี้ไม่รองรับ BarcodeDetector";
-
-      status.classList.add("error");
-
-      return;
+      throw Error("Browser นี้ไม่รองรับ BarcodeDetector");
     }
 
-    /* ตรวจสอบรูปแบบ Barcode ที่รองรับ */
-    try{
+    detector=new BarcodeDetector();
 
-      const formats =
-        await BarcodeDetector.getSupportedFormats();
-
-      console.log(
-        "Barcode formats ที่รองรับ:",
-        formats
-      );
-
-    }catch(e){
-
-      console.log(
-        "ไม่สามารถตรวจสอบ Barcode formats",
-        e
-      );
-    }
-
-
-    detector = new BarcodeDetector();
-
-    stream = await navigator.mediaDevices.getUserMedia({
+    stream=await navigator.mediaDevices.getUserMedia({
       video:{
-        facingMode:{
-          ideal:"environment"
-        },
-        width:{
-          ideal:1280
-        },
-        height:{
-          ideal:720
-        }
+        facingMode:{ideal:"environment"},
+        width:{ideal:1280},
+        height:{ideal:720}
       },
       audio:false
     });
 
-    v.srcObject = stream;
-
+    v.srcObject=stream;
     await v.play();
 
-    scanning = true;
-
-    lastValue = "";
-
-    restartBtn.classList.add("hidden");
-
+    scanning=true;
+    lastValue="";
+    restart.classList.add("hidden");
     status.classList.remove("error");
+    status.textContent="🔍 กำลังสแกน… กรุณานำ Barcode ให้อยู่ในกรอบ";
+    out.innerHTML="";
+    scan();
 
-    status.innerHTML =
-      "🔍 กำลังสแกน… กรุณานำ Barcode ให้อยู่ในกรอบ";
-
-    out.innerHTML = "";
-
-    scanLoop();
-
-  }catch(error){
-
-    console.error(error);
-
-    scanning = false;
-
+  }catch(e){
+    console.error(e);
+    scanning=false;
     status.classList.add("error");
-
-    status.innerHTML =
-      "❌ ไม่สามารถเปิดกล้องได้ กรุณาอนุญาตการใช้กล้อง";
-
-    restartBtn.classList.remove("hidden");
+    status.textContent="❌ ไม่สามารถเปิดกล้องได้ กรุณาอนุญาตการใช้กล้อง";
+    restart.classList.remove("hidden");
   }
 }
-
-
-/* =========================================================
-   หยุดกล้อง
-========================================================= */
 
 function stopCamera(){
-
-  scanning = false;
-
-  if(scanTimer){
-    clearTimeout(scanTimer);
-    scanTimer = null;
-  }
-
-  if(stream){
-
-    stream.getTracks().forEach(track => {
-      track.stop();
-    });
-
-    stream = null;
-  }
-
-  v.srcObject = null;
+  scanning=false;
+  clearTimeout(timer);
+  stream?.getTracks().forEach(t=>t.stop());
+  stream=null;
+  v.srcObject=null;
 }
 
-
-/* =========================================================
-   ระบบสแกน
-========================================================= */
-
-async function scanLoop(){
-
-  if(!scanning || !detector){
-    return;
-  }
+async function scan(){
+  if(!scanning)return;
 
   try{
-
-    if(v.readyState >= 2){
-
-      const barcodes =
-        await detector.detect(v);
-
-      if(barcodes.length > 0){
-
-        const val =
-          barcodes[0].rawValue.trim();
-
-        if(val){
-
-          /*
-             ไม่ต้องล็อก last ถาวร
-             เพราะผู้ใช้สามารถสแกนฉบับเดิมใหม่ได้
-          */
-
-          if(val !== lastValue){
-
-            lastValue = val;
-
-            calc(val);
-
-          }
-        }
+    if(v.readyState>=2){
+      const codes=await detector.detect(v);
+      const val=codes[0]?.rawValue?.trim();
+      if(val&&val!==lastValue){
+        lastValue=val;
+        calc(val);
       }
     }
+  }catch(e){console.error(e)}
 
-  }catch(error){
-
-    console.error(
-      "Barcode detection error:",
-      error
-    );
-  }
-
-  /*
-     หน่วงเล็กน้อย ป้องกันการสแกนซ้อน
-  */
-
-  if(scanning){
-
-    scanTimer =
-      setTimeout(scanLoop, 500);
-  }
+  if(scanning)timer=setTimeout(scan,500);
 }
 
-
-/* =========================================================
-   ตรวจสอบและคำนวณ
-========================================================= */
-
+/* ---------- คำนวณ ---------- */
 function calc(x){
+  x=x.replace(/\*/g,"");
 
-  /* รองรับ Code 39
-     เครื่องหมาย * เป็น Start/Stop Character
-  */
-  x = x.replace(/\*/g,"");
-
-
-  /* ต้องเป็นตัวเลขอย่างน้อย 14 หลัก */
-  if(!/^\d{14,}$/.test(x)){
-
+  if(!/^\d{15,16}$/.test(x)){
     status.classList.add("error");
+    status.textContent="❌ รูปแบบข้อมูลไม่ถูกต้อง";
+    out.innerHTML=`<div class="error">
+      Barcode ต้องมีตัวเลข 15–16 หลัก
+    </div>`;
+    return;
+  }
 
-    status.innerHTML =
-      "❌ รูปแบบข้อมูลไม่ถูกต้อง";
+  const n=[
+    +x.slice(0,2),
+    +x.slice(2,3),
+    +x.slice(3,5),
+    +x.slice(5,6),
+    +x.slice(6,7),
+    +x.slice(7,8),
+    +x.slice(8,9),
+    +x.slice(9,10),
+    +x.slice(10,12),
+    +x.slice(12,14),
+    +x.slice(14)
+  ];
 
-    out.innerHTML = `
-      <div class="error">
-        Barcode ต้องเป็นตัวเลขอย่างน้อย 14 หลัก
+  const [n1,n2,n3,n4,n5,n6,n7,n8,n9,n10,n11]=n;
+
+  if([n2,n4,n5,n6,n7].some(x=>x===0)){
+    status.classList.add("error");
+    status.textContent="❌ ข้อมูลไม่ถูกต้อง เนื่องจากมีตัวหารเป็น 0";
+    out.innerHTML="";
+    return;
+  }
+
+  const a=[
+    sub(frac(n1,21),frac(2,7)),
+    add(frac(19,8),frac(2,n2)),
+    mul(F(n3),frac(2,3)),
+    mul(frac(3,n4),frac(2,5)),
+    square(frac(2,n5)),
+    div(frac(2,5),F(n6)),
+    div(frac(9,2),frac(2,n7)),
+    sub(mul(frac(183,4),frac(5,4)),frac(n8*8+5,8)),
+    24*34*(25-n9),
+    20*36*n10
+  ];
+
+  const units=[
+    "","ลิตร","เม็ด","","ตร.ม.","กก.","ถุง","กก.","ลบ.ม.",""
+  ];
+
+  out.innerHTML=`
+    <div class="badge">เฉลย: ฉบับที่ ${n11}</div>
+    ${a.map((x,i)=>`
+      ${i===8?"<hr>":""}
+      <div class="answer-line">
+        <span class="answer-label">ข้อ ${i+1})</span>
+        ${i===9?volume(x):f(x)}
+        ${units[i]?`<span>${units[i]}</span>`:""}
       </div>
-    `;
-
-    return;
-  }
-
-
-  /* =======================================================
-     แยกข้อมูล
-  ======================================================= */
-
-  let n1  = parseInt(x.slice(0,2),10);
-  let n2  = parseInt(x.slice(2,3),10);
-  let n3  = parseInt(x.slice(3,5),10);
-  let n4  = parseInt(x.slice(5,6),10);
-  let n5  = parseInt(x.slice(6,7),10);
-  let n6  = parseInt(x.slice(7,8),10);
-  let n7  = parseInt(x.slice(8,9),10);
-  let n8  = parseInt(x.slice(9,10),10);
-  let n9  = parseInt(x.slice(10,12),10);
-  let n10 = parseInt(x.slice(12),10);
-
-
-  /* ตรวจสอบข้อมูล */
-  if(
-    Number.isNaN(n1) ||
-    Number.isNaN(n2) ||
-    Number.isNaN(n3) ||
-    Number.isNaN(n4) ||
-    Number.isNaN(n5) ||
-    Number.isNaN(n6) ||
-    Number.isNaN(n7) ||
-    Number.isNaN(n8) ||
-    Number.isNaN(n9) ||
-    Number.isNaN(n10)
-  ){
-
-    status.classList.add("error");
-
-    status.innerHTML =
-      "❌ ข้อมูล Barcode ไม่ถูกต้อง";
-
-    return;
-  }
-
-
-  /* =======================================================
-     ตรวจตัวหารไม่ให้เป็น 0
-  ======================================================= */
-
-  if(
-    n2 === 0 ||
-    n4 === 0 ||
-    n6 === 0 ||
-    n7 === 0
-  ){
-
-    status.classList.add("error");
-
-    status.innerHTML =
-      "❌ ข้อมูลไม่ถูกต้อง เนื่องจากมีตัวหารเป็น 0";
-
-    out.innerHTML = "";
-
-    return;
-  }
-
-
-  /* =======================================================
-     คำนวณข้อ 1–8 แบบเศษส่วนโดยตรง
-  ======================================================= */
-
-
-  /*
-     ข้อ 1
-     (n1/21) - (2/7)
-  */
-
-  let a1 = sub(
-    frac(n1,21),
-    frac(2,7)
-  );
-
-
-  /*
-     ข้อ 2
-     2(3/8) + (2/n2)
-  */
-
-  let a2 = add(
-    frac(19,8),
-    frac(2,n2)
-  );
-
-
-  /*
-     ข้อ 3
-     n3 × (2/3)
-  */
-
-  let a3 = mul(
-    F(n3),
-    frac(2,3)
-  );
-
-
-  /*
-     ข้อ 4
-     (3/n4) × (2/5)
-  */
-
-  let a4 = mul(
-    frac(3,n4),
-    frac(2,5)
-  );
-
-
-  /*
-     ข้อ 5
-     (2/n5)²
-  */
-
-  let a5 = square(
-    frac(2,n5)
-  );
-
-
-  /*
-     ข้อ 6
-     (2/5) ÷ n6
-  */
-
-  let a6 = div(
-    frac(2,5),
-    F(n6)
-  );
-
-
-  /*
-     ข้อ 7
-     (9/2) ÷ (2/n7)
-  */
-
-  let a7 = div(
-    frac(9,2),
-    frac(2,n7)
-  );
-
-
-  /*
-     ข้อ 8
-     (183/4 × 5/4) - ((n8×8+5)/8)
-  */
-
-  let a8 = sub(
-
-    mul(
-      frac(183,4),
-      frac(5,4)
-    ),
-
-    frac(
-      n8 * 8 + 5,
-      8
-    )
-
-  );
-
-
-  /* =======================================================
-     ข้อ 9–10 ยังคงเป็นตัวเลข
-  ======================================================= */
-
-  let a9 =
-    24 * 34 * (25 - n9);
-
-  let a10 =
-    20 * 36 * n10;
-
-
-  /* =======================================================
-     แสดงผล
-  ======================================================= */
-
-  status.classList.remove("error");
-
-  status.innerHTML =
-    "✅ สแกนสำเร็จ";
-
-
-  out.innerHTML = `
-
-    <div class="badge">
-      เฉลย: ฉบับที่ ${n9}
-    </div>
-
-    <div class="answer-line">
-      <span class="answer-label">ข้อ 1)</span>
-      ${f(a1)}
-    </div>
-
-    <div class="answer-line">
-      <span class="answer-label">ข้อ 2)</span>
-      ${f(a2)}
-      <span class="unit">ลิตร</span>
-    </div>
-
-    <div class="answer-line">
-      <span class="answer-label">ข้อ 3)</span>
-      ${f(a3)}
-      <span class="unit">เม็ด</span>
-    </div>
-
-    <div class="answer-line">
-      <span class="answer-label">ข้อ 4)</span>
-      ${f(a4)}
-    </div>
-
-    <div class="answer-line">
-      <span class="answer-label">ข้อ 5)</span>
-      ${f(a5)}
-      <span class="unit">ตร.ม.</span>
-    </div>
-
-    <div class="answer-line">
-      <span class="answer-label">ข้อ 6)</span>
-      ${f(a6)}
-      <span class="unit">กก.</span>
-    </div>
-
-    <div class="answer-line">
-      <span class="answer-label">ข้อ 7)</span>
-      ${f(a7)}
-      <span class="unit">ถุง</span>
-    </div>
-
-    <div class="answer-line">
-      <span class="answer-label">ข้อ 8)</span>
-      ${f(a8)}
-      <span class="unit">กก.</span>
-    </div>
-
-    <hr>
-
-    <div class="answer-line">
-      <span class="answer-label">ข้อ 9)</span>
-      ${f(a9)}
-      <span class="unit">ลบ.ม.</span>
-    </div>
-
-    <div class="answer-line">
-      <span class="answer-label">ข้อ 10)</span>
-      ${f(a10)}
-      <span class="unit">ลบ.ซม.</span>
-    </div>
-
+    `).join("")}
   `;
 
-
-  /*
-     เมื่อสแกนสำเร็จให้หยุดกล้อง
-     เพื่อไม่ให้สแกนซ้ำโดยไม่ตั้งใจ
-  */
-
+  status.classList.remove("error");
+  status.textContent="✅ สแกนสำเร็จ";
   stopCamera();
-
-  restartBtn.classList.remove("hidden");
+  restart.classList.remove("hidden");
 }
 
-
-/* =========================================================
-   ปุ่มสแกนใหม่
-========================================================= */
-
-restartBtn.addEventListener("click",function(){
-
+/* ---------- สแกนใหม่ ---------- */
+restart.onclick=()=>{
   stopCamera();
-
-  lastValue = "";
-
-  out.innerHTML = "";
-
+  lastValue="";
+  out.innerHTML="";
   status.classList.remove("error");
-
-  status.innerHTML =
-    "🔍 กำลังเตรียมกล้อง…";
-
+  status.textContent="🔍 กำลังเตรียมกล้อง…";
   startCamera();
-
-});
-
-
-/* =========================================================
-   เริ่มระบบ
-========================================================= */
+};
 
 startCamera();
-
 </script>
 
 </body>
