@@ -9,51 +9,78 @@
 *{box-sizing:border-box}
 body{
   margin:0;padding:20px;text-align:center;
-  font-family:Arial,sans-serif;background:#f4f6f8
+  font-family:system-ui,sans-serif;background:#f4f6f8;color:#333
 }
 .box{
   max-width:500px;margin:auto;padding:20px;
-  background:#fff;border-radius:15px;
-  box-shadow:0 3px 12px #ccc
+  background:#fff;border-radius:18px;
+  box-shadow:0 6px 18px #0002
 }
-h2{color:#1565c0}
-video{
-  width:100%;max-width:360px;height:260px;
-  object-fit:cover;border:4px solid #1565c0;
-  border-radius:12px;background:#000
+h2{color:#1565c0;margin:10px 0 15px;font-size:22px}
+
+/* UI สแกนเนอร์แบบเดียวกับ p5t1 */
+#scanner{
+  width:100%;max-width:360px;height:240px;margin:12px auto;
+  border:4px solid #1565c0;border-radius:18px;
+  overflow:hidden;background:#111;position:relative;
+  box-shadow:0 6px 16px #0002
 }
+video{width:100%;height:100%;object-fit:cover}
+#scanner:after{
+  content:"";position:absolute;inset:20% 10%;
+  border:2px solid #fffC;border-radius:10px;
+  pointer-events:none
+}
+
+#status{
+  margin:10px 0;min-height:22px;
+  color:#1565c0;font-size:15px;font-weight:600
+}
+.error{color:#d33!important}
+
 button{
-  padding:10px 18px;border:0;border-radius:8px;
-  background:#1565c0;color:#fff;font-size:16px
+  border:0;padding:10px 20px;border-radius:999px;
+  background:#1565c0;color:white;font-size:15px;
+  font-weight:600;cursor:pointer
 }
-#status{margin:12px;font-weight:bold}
+.hidden{display:none}
+
+.answer-container{
+  margin-top:15px;text-align:left
+}
 .answer{
-  display:flex;justify-content:space-between;
-  padding:11px;margin:6px 0;
-  background:#f1f8ff;border-radius:8px;font-size:18px
+  display:flex;justify-content:space-between;align-items:center;
+  padding:11px 14px;margin:6px 0;
+  background:#f1f8ff;border-radius:10px;font-size:16px
 }
 .answer b{color:#1565c0}
 .value{font-weight:bold}
 .fraction{
-  display:inline-block;text-align:center;
-  vertical-align:middle;line-height:1.1
+  display:inline-flex;flex-direction:column;
+  vertical-align:middle;text-align:center;
+  line-height:1.05;margin:0 3px
 }
-.fraction .top{
-  display:block;border-bottom:1px solid #222
+.fraction .top{border-bottom:1px solid #333;padding:0 4px 2px}
+.fraction .bottom{padding:2px 4px 0}
+.mixed{display:inline-flex;align-items:center;gap:3px}
+
+@media(max-width:400px){
+  .box{padding:15px}
+  #scanner{height:200px}
 }
-.fraction .bottom{display:block}
-.error{color:#c62828;font-weight:bold}
-.hidden{display:none}
 </style>
 </head>
 
 <body>
 
 <div class="box">
-  <h2>📸 สแกน Barcode ป.6</h2>
-  <video id="video" autoplay playsinline></video>
-  <div id="status">กำลังเตรียมกล้อง...</div>
+  <h2>📸 สแกน QR Code / Barcode ป.6</h2>
 
+  <div id="scanner">
+    <video id="video" autoplay playsinline></video>
+  </div>
+
+  <div id="status">🔍 กำลังเตรียมกล้อง...</div>
   <button id="restart" class="hidden">🔄 สแกนใหม่</button>
 
   <div id="result"></div>
@@ -69,15 +96,13 @@ const units = [
   "เมตร","คน","ตารางเมตร","บาท","บาท"
 ];
 
-let stream, scanning = false;
-
+let stream, detector, scanning = false, lastValue = "", timer;
 
 /* ---------- เศษส่วน ---------- */
-
 const gcd = (a,b) => {
   a=Math.abs(a); b=Math.abs(b);
   while(b)[a,b]=[b,a%b];
-  return a;
+  return a||1;
 };
 
 const F = (n,d=1) => {
@@ -96,11 +121,9 @@ const div=(a,b)=>{
 
 const lcm=(a,b)=>Math.abs(a*b)/gcd(a,b);
 
-
 /* ---------- แสดงเศษส่วน ---------- */
-
 function showFrac([n,d]){
-  if(d===1) return n;
+  if(d===1) return n.toLocaleString("en-US");
 
   const sign=n<0?"-":"";
   n=Math.abs(n);
@@ -115,18 +138,17 @@ function showFrac([n,d]){
 
   if(!rem) return sign+whole;
 
-  return `${sign}${whole}
+  return `<span class="mixed">
+    <span>${sign}${whole}</span>
     <span class="fraction">
       <span class="top">${rem}</span>
       <span class="bottom">${d}</span>
-    </span>`;
+    </span>
+  </span>`;
 }
 
-
 /* ---------- คำนวณ ---------- */
-
 function calculate(x){
-
   const n11=+x.slice(0,2),  n12=+x.slice(2,4);
   const n21=+x.slice(4,6),  n22=+x.slice(6,8);
   const n31=+x[8],          n32=+x[9];
@@ -139,7 +161,7 @@ function calculate(x){
   const n10=+x.slice(29,32),n20=+x.slice(32);
 
   if(n11===0&&n12===0)
-    throw Error("ข้อ 1 ไม่สามารถหาค่าได้");
+    throw Error("ข้อ 1 ไม่สามารถหาค่าได้ (ตัวหารเป็น 0)");
 
   if([n31,n32,n41,n42,n51,n52].includes(0)||9-n71===0)
     throw Error("ข้อมูล Barcode ทำให้เกิดการหารด้วยศูนย์");
@@ -147,178 +169,146 @@ function calculate(x){
   const g=gcd(n11,n12);
 
   const ans=[
-
-    // 1
     add(F(n11,g),F(n11,g)),
-
-    // 2
     F(lcm(n21,n22)),
-
-    // 3
-    add(
-      add(add(F(2),F(1,n31)),F(1,5)),
-      add(F(1,n32),F(3,4))
-    ),
-
-    // 4
-    sub(
-      mul(add(F(8),F(1,n41)),add(F(2),F(1,n42))),
-      F(19,3)
-    ),
-
-    // 5
-    div(
-      mul(add(F(6),F(1,n51)),F(1,n52)),
-      F(5)
-    ),
-
-    // 6
-    sub(
-      add(F(6),F(n61,100)),
-      add(F(68,100),F(n62,100))
-    ),
-
-    // 7
+    add(add(add(F(2),F(1,n31)),F(1,5)),add(F(1,n32),F(3,4))),
+    sub(mul(add(F(8),F(1,n41)),add(F(2),F(1,n42))),F(19,3)),
+    div(mul(add(F(6),F(1,n51)),F(1,n52)),F(5)),
+    sub(add(F(6),F(n61,100)),add(F(68,100),F(n62,100))),
     F(n72*n71,9-n71),
-
-    // 8
     F(n81*n82*n81*19),
-
-    // 9
-    mul(
-      mul(F(150),F(100-n91,100)),
-      F(100+n92,100)
-    ),
-
-    // 10
-    add(
-      F(45500),
-      F(45500*25*n10,36500)
-    )
+    mul(mul(F(150),F(100-n91,100)),F(100+n92,100)),
+    add(F(45500),F(45500*25*n10,36500))
   ];
 
   return {ans,n20};
 }
 
-
 /* ---------- แสดงคำตอบ ---------- */
-
 function show(data){
-
-  result.innerHTML=
-    `<h3>✅ เฉลย</h3>
-     <p><b>ชุดข้อสอบที่ ${data.n20}</b></p>`;
+  let html = `<div class="answer-container">
+    <h3 style="margin:10px 0;text-align:center;">เฉลย: ชุดข้อสอบที่ ${data.n20}</h3>`;
 
   data.ans.forEach((a,i)=>{
-    result.innerHTML+=`
+    html += `
       <div class="answer">
-        <b>ข้อ ${i+1}</b>
+        <b>ข้อ ${i+1})</b>
         <span class="value">${showFrac(a)} ${units[i]}</span>
       </div>`;
   });
+
+  html += `</div>`;
+  result.innerHTML = html;
 }
 
-
 /* ---------- ตรวจ Barcode ---------- */
-
 function decode(value){
-
   const x=value.replace(/\D/g,"");
 
   if(!/^\d{33,34}$/.test(x))
     throw Error("Barcode ต้องมี 33–34 หลัก");
 
   const n20=+x.slice(32);
-
   if(n20<1||n20>30)
     throw Error("ชุดข้อสอบต้องอยู่ระหว่าง 1–30");
 
   return calculate(x);
 }
 
-
 /* ---------- กล้อง ---------- */
-
-async function start(){
-
+async function startCamera(){
   try{
-    result.innerHTML="";
-    restart.classList.add("hidden");
-
     if(!navigator.mediaDevices?.getUserMedia)
       throw Error("อุปกรณ์นี้ไม่รองรับกล้อง");
 
     if(!("BarcodeDetector" in window))
       throw Error("เบราว์เซอร์ไม่รองรับ BarcodeDetector");
 
-    stream=await navigator.mediaDevices.getUserMedia({
-      video:{facingMode:{ideal:"environment"}},
+    detector = new BarcodeDetector();
+
+    // กำหนด resolution ให้สูงขึ้น (HD) เหมือน p5t1 เพื่อช่วยให้สแกนได้แม่นยำขึ้น
+    stream = await navigator.mediaDevices.getUserMedia({
+      video:{
+        facingMode:{ideal:"environment"},
+        width:{ideal:1280},
+        height:{ideal:720}
+      },
       audio:false
     });
 
-    video.srcObject=stream;
+    video.srcObject = stream;
+    await video.play();
 
-    const detector=new BarcodeDetector();
-    scanning=true;
-    status.textContent="📷 กำลังสแกน Barcode...";
+    scanning = true;
+    lastValue = "";
+    restart.classList.add("hidden");
+    status.classList.remove("error");
+    status.textContent = "🔍 กำลังสแกน... กรุณานำ Barcode/QR ให้หมู่อยู่ในกรอบ";
+    result.innerHTML = "";
 
-    scan(detector);
-
-  }catch(e){
-    status.innerHTML=`<span class="error">❌ ${e.message}</span>`;
-  }
-}
-
-
-async function scan(detector){
-
-  if(!scanning)return;
-
-  try{
-
-    const codes=await detector.detect(video);
-
-    if(codes.length){
-
-      scanning=false;
-      stop();
-
-      show(decode(codes[0].rawValue));
-
-      status.textContent="✅ สแกนสำเร็จ";
-      restart.classList.remove("hidden");
-      return;
-    }
+    scan();
 
   }catch(e){
-
-    scanning=false;
-    stop();
-
-    status.innerHTML=
-      `<span class="error">❌ ${e.message}</span>`;
-
+    console.error(e);
+    scanning = false;
+    status.classList.add("error");
+    status.textContent = "❌ " + (e.message || "ไม่สามารถเปิดกล้องได้");
     restart.classList.remove("hidden");
-    return;
   }
-
-  setTimeout(()=>scan(detector),500);
 }
 
-
-function stop(){
-
-  scanning=false;
-
+function stopCamera(){
+  scanning = false;
+  clearTimeout(timer);
   if(stream){
     stream.getTracks().forEach(t=>t.stop());
-    stream=null;
+    stream = null;
   }
+  video.srcObject = null;
 }
 
-restart.onclick=start;
+async function scan(){
+  if(!scanning) return;
 
-start();
+  try{
+    if(video.readyState >= 2){
+      const codes = await detector.detect(video);
+      const val = codes[0]?.rawValue?.trim();
+
+      if(val && val !== lastValue){
+        lastValue = val;
+        try {
+          const data = decode(val);
+          show(data);
+          status.classList.remove("error");
+          status.textContent = "✅ สแกนสำเร็จ";
+          stopCamera();
+          restart.classList.remove("hidden");
+          return;
+        } catch(e) {
+          status.classList.add("error");
+          status.textContent = "❌ " + e.message;
+        }
+      }
+    }
+  }catch(e){
+    console.error(e);
+  }
+
+  if(scanning) timer = setTimeout(scan, 400);
+}
+
+/* ---------- สแกนใหม่ ---------- */
+restart.onclick = () => {
+  stopCamera();
+  lastValue = "";
+  result.innerHTML = "";
+  status.classList.remove("error");
+  status.textContent = "🔍 กำลังเตรียมกล้อง...";
+  startCamera();
+};
+
+startCamera();
 </script>
 
 </body>
