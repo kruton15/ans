@@ -1,0 +1,325 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>เฉลยคณิต ป.6</title>
+
+<style>
+*{box-sizing:border-box}
+body{
+  margin:0;padding:20px;text-align:center;
+  font-family:Arial,sans-serif;background:#f4f6f8
+}
+.box{
+  max-width:500px;margin:auto;padding:20px;
+  background:#fff;border-radius:15px;
+  box-shadow:0 3px 12px #ccc
+}
+h2{color:#1565c0}
+video{
+  width:100%;max-width:360px;height:260px;
+  object-fit:cover;border:4px solid #1565c0;
+  border-radius:12px;background:#000
+}
+button{
+  padding:10px 18px;border:0;border-radius:8px;
+  background:#1565c0;color:#fff;font-size:16px
+}
+#status{margin:12px;font-weight:bold}
+.answer{
+  display:flex;justify-content:space-between;
+  padding:11px;margin:6px 0;
+  background:#f1f8ff;border-radius:8px;font-size:18px
+}
+.answer b{color:#1565c0}
+.value{font-weight:bold}
+.fraction{
+  display:inline-block;text-align:center;
+  vertical-align:middle;line-height:1.1
+}
+.fraction .top{
+  display:block;border-bottom:1px solid #222
+}
+.fraction .bottom{display:block}
+.error{color:#c62828;font-weight:bold}
+.hidden{display:none}
+</style>
+</head>
+
+<body>
+
+<div class="box">
+  <h2>📸 สแกน Barcode ป.6</h2>
+  <video id="video" autoplay playsinline></video>
+  <div id="status">กำลังเตรียมกล้อง...</div>
+
+  <button id="restart" class="hidden">🔄 สแกนใหม่</button>
+
+  <div id="result"></div>
+</div>
+
+<script>
+const $ = id => document.getElementById(id);
+const video = $("video"), status = $("status");
+const result = $("result"), restart = $("restart");
+
+const units = [
+  "ใบ","ชิ้น","กิโลกรัม","ปี","เมตร",
+  "เมตร","คน","ตารางเมตร","บาท","บาท"
+];
+
+let stream, scanning = false;
+
+
+/* ---------- เศษส่วน ---------- */
+
+const gcd = (a,b) => {
+  a=Math.abs(a); b=Math.abs(b);
+  while(b)[a,b]=[b,a%b];
+  return a;
+};
+
+const F = (n,d=1) => {
+  if(!d) throw Error("หารด้วยศูนย์ไม่ได้");
+  const g=gcd(n,d);
+  return [n/g,d/g];
+};
+
+const add=(a,b)=>F(a[0]*b[1]+b[0]*a[1],a[1]*b[1]);
+const sub=(a,b)=>F(a[0]*b[1]-b[0]*a[1],a[1]*b[1]);
+const mul=(a,b)=>F(a[0]*b[0],a[1]*b[1]);
+const div=(a,b)=>{
+  if(!b[0]) throw Error("หารด้วยศูนย์ไม่ได้");
+  return F(a[0]*b[1],a[1]*b[0]);
+};
+
+const lcm=(a,b)=>Math.abs(a*b)/gcd(a,b);
+
+
+/* ---------- แสดงเศษส่วน ---------- */
+
+function showFrac([n,d]){
+  if(d===1) return n;
+
+  const sign=n<0?"-":"";
+  n=Math.abs(n);
+
+  const whole=Math.floor(n/d), rem=n%d;
+
+  if(!whole)
+    return `<span class="fraction">
+      <span class="top">${sign}${rem}</span>
+      <span class="bottom">${d}</span>
+    </span>`;
+
+  if(!rem) return sign+whole;
+
+  return `${sign}${whole}
+    <span class="fraction">
+      <span class="top">${rem}</span>
+      <span class="bottom">${d}</span>
+    </span>`;
+}
+
+
+/* ---------- คำนวณ ---------- */
+
+function calculate(x){
+
+  const n11=+x.slice(0,2),  n12=+x.slice(2,4);
+  const n21=+x.slice(4,6),  n22=+x.slice(6,8);
+  const n31=+x[8],          n32=+x[9];
+  const n41=+x[10],         n42=+x[11];
+  const n51=+x[12],         n52=+x[13];
+  const n61=+x.slice(14,16),n62=+x.slice(16,18);
+  const n71=+x[18],         n72=+x.slice(19,21);
+  const n81=+x.slice(21,23),n82=+x.slice(23,25);
+  const n91=+x.slice(25,27),n92=+x.slice(27,29);
+  const n10=+x.slice(29,32),n20=+x.slice(32);
+
+  if(n11===0&&n12===0)
+    throw Error("ข้อ 1 ไม่สามารถหาค่าได้");
+
+  if([n31,n32,n41,n42,n51,n52].includes(0)||9-n71===0)
+    throw Error("ข้อมูล Barcode ทำให้เกิดการหารด้วยศูนย์");
+
+  const g=gcd(n11,n12);
+
+  const ans=[
+
+    // 1
+    add(F(n11,g),F(n11,g)),
+
+    // 2
+    F(lcm(n21,n22)),
+
+    // 3
+    add(
+      add(add(F(2),F(1,n31)),F(1,5)),
+      add(F(1,n32),F(3,4))
+    ),
+
+    // 4
+    sub(
+      mul(add(F(8),F(1,n41)),add(F(2),F(1,n42))),
+      F(19,3)
+    ),
+
+    // 5
+    div(
+      mul(add(F(6),F(1,n51)),F(1,n52)),
+      F(5)
+    ),
+
+    // 6
+    sub(
+      add(F(6),F(n61,100)),
+      add(F(68,100),F(n62,100))
+    ),
+
+    // 7
+    F(n72*n71,9-n71),
+
+    // 8
+    F(n81*n82*n81*19),
+
+    // 9
+    mul(
+      mul(F(150),F(100-n91,100)),
+      F(100+n92,100)
+    ),
+
+    // 10
+    add(
+      F(45500),
+      F(45500*25*n10,36500)
+    )
+  ];
+
+  return {ans,n20};
+}
+
+
+/* ---------- แสดงคำตอบ ---------- */
+
+function show(data){
+
+  result.innerHTML=
+    `<h3>✅ เฉลย</h3>
+     <p><b>ชุดข้อสอบที่ ${data.n20}</b></p>`;
+
+  data.ans.forEach((a,i)=>{
+    result.innerHTML+=`
+      <div class="answer">
+        <b>ข้อ ${i+1}</b>
+        <span class="value">${showFrac(a)} ${units[i]}</span>
+      </div>`;
+  });
+}
+
+
+/* ---------- ตรวจ Barcode ---------- */
+
+function decode(value){
+
+  const x=value.replace(/\D/g,"");
+
+  if(!/^\d{33,34}$/.test(x))
+    throw Error("Barcode ต้องมี 33–34 หลัก");
+
+  const n20=+x.slice(32);
+
+  if(n20<1||n20>30)
+    throw Error("ชุดข้อสอบต้องอยู่ระหว่าง 1–30");
+
+  return calculate(x);
+}
+
+
+/* ---------- กล้อง ---------- */
+
+async function start(){
+
+  try{
+    result.innerHTML="";
+    restart.classList.add("hidden");
+
+    if(!navigator.mediaDevices?.getUserMedia)
+      throw Error("อุปกรณ์นี้ไม่รองรับกล้อง");
+
+    if(!("BarcodeDetector" in window))
+      throw Error("เบราว์เซอร์ไม่รองรับ BarcodeDetector");
+
+    stream=await navigator.mediaDevices.getUserMedia({
+      video:{facingMode:{ideal:"environment"}},
+      audio:false
+    });
+
+    video.srcObject=stream;
+
+    const detector=new BarcodeDetector();
+    scanning=true;
+    status.textContent="📷 กำลังสแกน Barcode...";
+
+    scan(detector);
+
+  }catch(e){
+    status.innerHTML=`<span class="error">❌ ${e.message}</span>`;
+  }
+}
+
+
+async function scan(detector){
+
+  if(!scanning)return;
+
+  try{
+
+    const codes=await detector.detect(video);
+
+    if(codes.length){
+
+      scanning=false;
+      stop();
+
+      show(decode(codes[0].rawValue));
+
+      status.textContent="✅ สแกนสำเร็จ";
+      restart.classList.remove("hidden");
+      return;
+    }
+
+  }catch(e){
+
+    scanning=false;
+    stop();
+
+    status.innerHTML=
+      `<span class="error">❌ ${e.message}</span>`;
+
+    restart.classList.remove("hidden");
+    return;
+  }
+
+  setTimeout(()=>scan(detector),500);
+}
+
+
+function stop(){
+
+  scanning=false;
+
+  if(stream){
+    stream.getTracks().forEach(t=>t.stop());
+    stream=null;
+  }
+}
+
+restart.onclick=start;
+
+start();
+</script>
+
+</body>
+</html>
