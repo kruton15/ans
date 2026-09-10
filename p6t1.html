@@ -1,112 +1,102 @@
 <!DOCTYPE html>
 <html lang="th">
 <head>
-<meta charset="UTF-8">
+<meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <title>เฉลยคณิต ป.6</title>
 
 <style>
 *{box-sizing:border-box}
 body{
-  margin:0;padding:20px;text-align:center;
-  font-family:system-ui,sans-serif;background:#f4f6f8;color:#333
+  margin:0;text-align:center;color:#333;
+  font-family:system-ui,sans-serif;background:#f2f5fb
 }
-.box{
-  max-width:500px;margin:auto;padding:20px;
-  background:#fff;border-radius:18px;
-  box-shadow:0 6px 18px #0002
-}
-h2{color:#1565c0;margin:10px 0 15px;font-size:22px}
-
-/* UI สแกนเนอร์แบบเดียวกับ p5t1 */
+h3{margin:14px 0 10px;font-size:20px}
 #scanner{
-  width:100%;max-width:360px;height:240px;margin:12px auto;
+  width:260px;height:210px;margin:12px auto;
   border:4px solid #1565c0;border-radius:18px;
   overflow:hidden;background:#111;position:relative;
-  box-shadow:0 6px 16px #0002
+  box-shadow:0 8px 18px #0002
 }
 video{width:100%;height:100%;object-fit:cover}
 #scanner:after{
-  content:"";position:absolute;inset:20% 10%;
-  border:2px solid #fffC;border-radius:10px;
-  pointer-events:none
+  content:"";position:absolute;inset:25% 15%;
+  border:2px solid #fffC;border-radius:10px
 }
-
 #status{
-  margin:10px 0;min-height:22px;
-  color:#1565c0;font-size:15px;font-weight:600
+  margin:8px 0;min-height:22px;
+  color:#1565c0;font-size:14px;font-weight:600
 }
 .error{color:#d33!important}
-
+#out{
+  max-width:390px;margin:14px auto;padding:16px;
+  background:#fff;border-radius:16px;
+  box-shadow:0 6px 16px #0002;
+  text-align:left;font-size:16px;line-height:1.9
+}
 button{
   border:0;padding:10px 20px;border-radius:999px;
   background:#1565c0;color:white;font-size:15px;
   font-weight:600;cursor:pointer
 }
 .hidden{display:none}
-
-.answer-container{
-  margin-top:15px;text-align:left
+.badge{
+  display:inline-block;margin-bottom:8px;padding:5px 12px;
+  border-radius:999px;background:#1565c0;color:#fff;font-size:14px
 }
-.answer{
-  display:flex;justify-content:space-between;align-items:center;
-  padding:11px 14px;margin:6px 0;
-  background:#f1f8ff;border-radius:10px;font-size:16px
-}
-.answer b{color:#1565c0}
-.value{font-weight:bold}
+.answer-line{margin:3px 0}
+.answer-label{font-weight:600}
+hr{border:0;border-top:1px solid #ddd;margin:10px 0}
 .fraction{
   display:inline-flex;flex-direction:column;
   vertical-align:middle;text-align:center;
   line-height:1.05;margin:0 3px
 }
-.fraction .top{border-bottom:1px solid #333;padding:0 4px 2px}
-.fraction .bottom{padding:2px 4px 0}
+.top{border-bottom:1px solid #333;padding:0 4px 2px}
+.bottom{padding:2px 4px 0}
 .mixed{display:inline-flex;align-items:center;gap:3px}
 
 @media(max-width:400px){
-  .box{padding:15px}
-  #scanner{height:200px}
+  #scanner{width:230px;height:190px}
+  #out{margin-left:12px;margin-right:12px}
 }
 </style>
 </head>
 
 <body>
 
-<div class="box">
-  <h2>📸 สแกน QR Code / Barcode ป.6</h2>
+<h3>📸 สแกน Barcode ป.6</h3>
 
-  <div id="scanner">
-    <video id="video" autoplay playsinline></video>
-  </div>
-
-  <div id="status">🔍 กำลังเตรียมกล้อง...</div>
-  <button id="restart" class="hidden">🔄 สแกนใหม่</button>
-
-  <div id="result"></div>
+<div id="scanner">
+  <video id="v" autoplay playsinline></video>
 </div>
 
+<div id="status">🔍 กำลังเตรียมกล้อง…</div>
+<button id="restartBtn" class="hidden">🔄 สแกนใหม่</button>
+<div id="out"></div>
+
 <script>
-const $ = id => document.getElementById(id);
-const video = $("video"), status = $("status");
-const result = $("result"), restart = $("restart");
+const $=id=>document.getElementById(id);
+const v=$("v"),out=$("out"),status=$("status"),restart=$("restartBtn");
+
+let stream,detector,scanning=false,lastValue="",timer;
 
 const units = [
   "ใบ","ชิ้น","กิโลกรัม","ปี","เมตร",
   "เมตร","คน","ตารางเมตร","บาท","บาท"
 ];
 
-let stream, detector, scanning = false, lastValue = "", timer;
-
 /* ---------- เศษส่วน ---------- */
+
 const gcd = (a,b) => {
   a=Math.abs(a); b=Math.abs(b);
   while(b)[a,b]=[b,a%b];
-  return a||1;
+  return a || 1;
 };
 
 const F = (n,d=1) => {
   if(!d) throw Error("หารด้วยศูนย์ไม่ได้");
+  if(d<0)[n,d]=[-n,-d];
   const g=gcd(n,d);
   return [n/g,d/g];
 };
@@ -121,9 +111,10 @@ const div=(a,b)=>{
 
 const lcm=(a,b)=>Math.abs(a*b)/gcd(a,b);
 
-/* ---------- แสดงเศษส่วน ---------- */
+/* ---------- แสดงผล ---------- */
+
 function showFrac([n,d]){
-  if(d===1) return n.toLocaleString("en-US");
+  if(d===1||n===0) return Number(n).toLocaleString("en-US");
 
   const sign=n<0?"-":"";
   n=Math.abs(n);
@@ -136,10 +127,10 @@ function showFrac([n,d]){
       <span class="bottom">${d}</span>
     </span>`;
 
-  if(!rem) return sign+whole;
+  if(!rem) return sign+whole.toLocaleString("en-US");
 
   return `<span class="mixed">
-    <span>${sign}${whole}</span>
+    <span>${sign}${whole.toLocaleString("en-US")}</span>
     <span class="fraction">
       <span class="top">${rem}</span>
       <span class="bottom">${d}</span>
@@ -147,7 +138,16 @@ function showFrac([n,d]){
   </span>`;
 }
 
+function f(x){
+  if(Array.isArray(x)) return showFrac(x);
+  if(!Number.isFinite(x)) return "ไม่สามารถคำนวณได้";
+  if(Number.isInteger(x)) return x.toLocaleString("en-US");
+  return x.toFixed(2).replace(/0+$/,"").replace(/\.$/,"")
+    .replace(/\B(?=(\d{3})+(?!\d))/g,",");
+}
+
 /* ---------- คำนวณ ---------- */
+
 function calculate(x){
   const n11=+x.slice(0,2),  n12=+x.slice(2,4);
   const n21=+x.slice(4,6),  n22=+x.slice(6,8);
@@ -161,7 +161,7 @@ function calculate(x){
   const n10=+x.slice(29,32),n20=+x.slice(32);
 
   if(n11===0&&n12===0)
-    throw Error("ข้อ 1 ไม่สามารถหาค่าได้ (ตัวหารเป็น 0)");
+    throw Error("ข้อ 1 ไม่สามารถหาค่าได้");
 
   if([n31,n32,n41,n42,n51,n52].includes(0)||9-n71===0)
     throw Error("ข้อมูล Barcode ทำให้เกิดการหารด้วยศูนย์");
@@ -169,39 +169,51 @@ function calculate(x){
   const g=gcd(n11,n12);
 
   const ans=[
+    // 1
     add(F(n11,g),F(n11,g)),
+    // 2
     F(lcm(n21,n22)),
-    add(add(add(F(2),F(1,n31)),F(1,5)),add(F(1,n32),F(3,4))),
-    sub(mul(add(F(8),F(1,n41)),add(F(2),F(1,n42))),F(19,3)),
-    div(mul(add(F(6),F(1,n51)),F(1,n52)),F(5)),
-    sub(add(F(6),F(n61,100)),add(F(68,100),F(n62,100))),
+    // 3
+    add(
+      add(add(F(2),F(1,n31)),F(1,5)),
+      add(F(1,n32),F(3,4))
+    ),
+    // 4
+    sub(
+      mul(add(F(8),F(1,n41)),add(F(2),F(1,n42))),
+      F(19,3)
+    ),
+    // 5
+    div(
+      mul(add(F(6),F(1,n51)),F(1,n52)),
+      F(5)
+    ),
+    // 6
+    sub(
+      add(F(6),F(n61,100)),
+      add(F(68,100),F(n62,100))
+    ),
+    // 7
     F(n72*n71,9-n71),
+    // 8
     F(n81*n82*n81*19),
-    mul(mul(F(150),F(100-n91,100)),F(100+n92,100)),
-    add(F(45500),F(45500*25*n10,36500))
+    // 9
+    mul(
+      mul(F(150),F(100-n91,100)),
+      F(100+n92,100)
+    ),
+    // 10
+    add(
+      F(45500),
+      F(45500*25*n10,36500)
+    )
   ];
 
   return {ans,n20};
 }
 
-/* ---------- แสดงคำตอบ ---------- */
-function show(data){
-  let html = `<div class="answer-container">
-    <h3 style="margin:10px 0;text-align:center;">เฉลย: ชุดข้อสอบที่ ${data.n20}</h3>`;
-
-  data.ans.forEach((a,i)=>{
-    html += `
-      <div class="answer">
-        <b>ข้อ ${i+1})</b>
-        <span class="value">${showFrac(a)} ${units[i]}</span>
-      </div>`;
-  });
-
-  html += `</div>`;
-  result.innerHTML = html;
-}
-
 /* ---------- ตรวจ Barcode ---------- */
+
 function decode(value){
   const x=value.replace(/\D/g,"");
 
@@ -209,6 +221,7 @@ function decode(value){
     throw Error("Barcode ต้องมี 33–34 หลัก");
 
   const n20=+x.slice(32);
+
   if(n20<1||n20>30)
     throw Error("ชุดข้อสอบต้องอยู่ระหว่าง 1–30");
 
@@ -216,18 +229,19 @@ function decode(value){
 }
 
 /* ---------- กล้อง ---------- */
+
 async function startCamera(){
   try{
     if(!navigator.mediaDevices?.getUserMedia)
-      throw Error("อุปกรณ์นี้ไม่รองรับกล้อง");
+      throw Error("ไม่รองรับกล้อง");
 
-    if(!("BarcodeDetector" in window))
-      throw Error("เบราว์เซอร์ไม่รองรับ BarcodeDetector");
+    if(!("BarcodeDetector" in window)){
+      throw Error("Browser นี้ไม่รองรับ BarcodeDetector");
+    }
 
-    detector = new BarcodeDetector();
+    detector=new BarcodeDetector();
 
-    // กำหนด resolution ให้สูงขึ้น (HD) เหมือน p5t1 เพื่อช่วยให้สแกนได้แม่นยำขึ้น
-    stream = await navigator.mediaDevices.getUserMedia({
+    stream=await navigator.mediaDevices.getUserMedia({
       video:{
         facingMode:{ideal:"environment"},
         width:{ideal:1280},
@@ -236,75 +250,84 @@ async function startCamera(){
       audio:false
     });
 
-    video.srcObject = stream;
-    await video.play();
+    v.srcObject=stream;
+    await v.play();
 
-    scanning = true;
-    lastValue = "";
+    scanning=true;
+    lastValue="";
     restart.classList.add("hidden");
     status.classList.remove("error");
-    status.textContent = "🔍 กำลังสแกน... กรุณานำ Barcode/QR ให้หมู่อยู่ในกรอบ";
-    result.innerHTML = "";
-
+    status.textContent="🔍 กำลังสแกน… กรุณานำ Barcode ให้อยู่ในกรอบ";
+    out.innerHTML="";
     scan();
 
   }catch(e){
     console.error(e);
-    scanning = false;
+    scanning=false;
     status.classList.add("error");
-    status.textContent = "❌ " + (e.message || "ไม่สามารถเปิดกล้องได้");
+    status.textContent="❌ ไม่สามารถเปิดกล้องได้ (" + e.message + ")";
     restart.classList.remove("hidden");
   }
 }
 
 function stopCamera(){
-  scanning = false;
+  scanning=false;
   clearTimeout(timer);
-  if(stream){
-    stream.getTracks().forEach(t=>t.stop());
-    stream = null;
-  }
-  video.srcObject = null;
+  stream?.getTracks().forEach(t=>t.stop());
+  stream=null;
+  v.srcObject=null;
 }
 
 async function scan(){
-  if(!scanning) return;
+  if(!scanning)return;
 
   try{
-    if(video.readyState >= 2){
-      const codes = await detector.detect(video);
-      const val = codes[0]?.rawValue?.trim();
-
-      if(val && val !== lastValue){
-        lastValue = val;
+    if(v.readyState>=2){
+      const codes=await detector.detect(v);
+      const val=codes[0]?.rawValue?.trim();
+      if(val&&val!==lastValue){
+        lastValue=val;
+        
         try {
           const data = decode(val);
-          show(data);
+          
+          out.innerHTML=`
+            <div class="badge">เฉลย: ชุดข้อสอบที่ ${data.n20}</div>
+            ${data.ans.map((x,i)=>`
+              <div class="answer-line">
+                <span class="answer-label">ข้อ ${i+1})</span>
+                ${f(x)}
+                ${units[i]?`<span>${units[i]}</span>`:""}
+              </div>
+            `).join("")}
+          `;
+
           status.classList.remove("error");
-          status.textContent = "✅ สแกนสำเร็จ";
+          status.textContent="✅ สแกนสำเร็จ";
           stopCamera();
           restart.classList.remove("hidden");
           return;
+
         } catch(e) {
           status.classList.add("error");
-          status.textContent = "❌ " + e.message;
+          status.textContent="❌ " + e.message;
+          out.innerHTML=`<div class="error">${e.message}</div>`;
         }
       }
     }
-  }catch(e){
-    console.error(e);
-  }
+  }catch(e){console.error(e)}
 
-  if(scanning) timer = setTimeout(scan, 400);
+  if(scanning)timer=setTimeout(scan,500);
 }
 
 /* ---------- สแกนใหม่ ---------- */
-restart.onclick = () => {
+
+restart.onclick=()=>{
   stopCamera();
-  lastValue = "";
-  result.innerHTML = "";
+  lastValue="";
+  out.innerHTML="";
   status.classList.remove("error");
-  status.textContent = "🔍 กำลังเตรียมกล้อง...";
+  status.textContent="🔍 กำลังเตรียมกล้อง…";
   startCamera();
 };
 
