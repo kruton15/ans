@@ -26,7 +26,7 @@ button{border:0;padding:10px 20px;border-radius:999px;background:#1565c0;color:w
 </head>
 
 <body>
-<h3>📸 สแกน QR Code ป.6</h3>
+<h3>📸 สแกน QR Code / Barcode ป.6</h3>
 
 <div id="scanner"><video id="v" autoplay playsinline></video></div>
 <div id="status">🔍 กำลังเตรียมกล้อง…</div>
@@ -38,7 +38,7 @@ const $=id=>document.getElementById(id);
 const v=$("v"),out=$("out"),status=$("status"),restart=$("restartBtn");
 let stream,detector,scanning=false,lastValue="",timer;
 
-const units=["ใบ","ชิ้น","กิโลกรัม","ปี","เมตร","เมตร","คน","ตารางเมตร","บาท","บาท"];
+const units=["ชิ้น","ชิ้น","กิโลกรัม","ปี","เมตร","เมตร","คน","ตารางเมตร","บาท","บาท"];
 
 const gcd=(a,b)=>{
   a=Math.abs(a);b=Math.abs(b);
@@ -105,7 +105,7 @@ function calculate(x){
   return{
     n20,
     ans:[
-      add(F(n11,g),F(n12,g)),
+      gcd(n11,n12),
       F(lcm(n21,n22)),
       add(add(add(F(2),F(1,n31)),F(1,5)),add(F(1,n32),F(3,4))),
       add(mul(add(F(8),F(1,n41)),add(F(2),F(1,n42))),F(19,3)),
